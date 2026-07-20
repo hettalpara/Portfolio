@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 
-// Wrapping App with BrowserRouter to enable routing (Practical 2)
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

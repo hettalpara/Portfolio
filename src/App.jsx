@@ -23,10 +23,10 @@ function App() {
 
   return (
     <div className="app">
-      {/* NavBar appears on every page (Practical 2) */}
+      {}
       <NavBar />
 
-      {/* Routes setup for SPA navigation (Practical 2) */}
+      {}
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home name={name} skillList={skillList} />} />
@@ -35,7 +35,7 @@ function App() {
         </Routes>
       </main>
 
-      {/* Footer appears on every page */}
+      {}
       <Footer />
     </div>
   )
