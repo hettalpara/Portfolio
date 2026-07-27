@@ -1,7 +1,7 @@
-/* ===== Google Font Import ===== */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ===== CSS Variables (Color Palette) ===== */
+
 :root {
   --primary: #2563EB;
   --primary-light: #3B82F6;
