@@ -2,29 +2,21 @@ import React, { useState, useEffect } from 'react'
 import Spinner from '../components/Spinner'
 import ErrorMessage from '../components/ErrorMessage'
 
-// Projects page - Practical 3: API Integration and Data Rendering
 function Projects() {
-  // --- State variables for API data ---
   const [repos, setRepos] = useState([])       // stores fetched repositories
   const [loading, setLoading] = useState(true)  // tracks loading state
   const [error, setError] = useState(null)       // stores error message
 
-  // --- State variable for search feature (Bonus) ---
   const [searchTerm, setSearchTerm] = useState('')
 
-  // --- GitHub API URL ---
   const API_URL = 'https://api.github.com/users/hettalpara/repos'
 
-  // --- Function to fetch repositories from GitHub API ---
   const fetchRepos = () => {
-    // Reset states before fetching
     setLoading(true)
     setError(null)
 
-    // Using fetch() to call GitHub REST API
     fetch(API_URL)
       .then((response) => {
-        // Check if the response is OK (status 200-299)
         if (!response.ok) {
           throw new Error('Failed to fetch repositories. Please try again later.')
         }

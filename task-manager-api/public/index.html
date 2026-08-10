@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Offline browser testing interface for the Task Manager RESTful API — Practical 4" />
+  <title>Task Manager API Tester</title>
+  <style>
+    /* ================================================================
+       DESIGN SYSTEM — Dark theme with glassmorphism
+       ================================================================ */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0f0f1a;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --bg-card-hover: rgba(255, 255, 255, 0.07);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --text-primary: #e8e8f0;
+      --text-secondary: #9d9db5;
+      --text-muted: #6a6a82;
+      --accent-get: #34d399;
+      --accent-post: #818cf8;
+      --accent-put: #fbbf24;
+      --accent-delete: #f87171;
+      --accent-get-bg: rgba(52, 211, 153, 0.12);
+      --accent-post-bg: rgba(129, 140, 248, 0.12);
+      --accent-put-bg: rgba(251, 191, 36, 0.12);
+      --accent-delete-bg: rgba(248, 113, 113, 0.12);
+      --input-bg: rgba(255, 255, 255, 0.06);
+      --input-border: rgba(255, 255, 255, 0.12);
+      --input-focus: rgba(129, 140, 248, 0.5);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ================================================================
+       LAYOUT
+       ================================================================ */
+    .app-header {
+      text-align: center;
+      padding: 48px 24px 32px;
+    }
+
+    .app-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #818cf8, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+
+    .app-header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .method-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .badge-get    { background: var(--accent-get-bg);    color: var(--accent-get);    }
+    .badge-post   { background: var(--accent-post-bg);   color: var(--accent-post);   }
+    .badge-put    { background: var(--accent-put-bg);    color: var(--accent-put);    }
+    .badge-delete { background: var(--accent-delete-bg); color: var(--accent-delete); }
+
+    .card-title h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .card-description {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+    }
+
+    /* ================================================================
+       FORM CONTROLS
+       ================================================================ */
+    .form-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    input:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Checkbox styling */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0 0;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent-post);
+      cursor: pointer;
+    }
+
+    .checkbox-row label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    /* ================================================================
+       BUTTONS
+       ================================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-get {
+      background: var(--accent-get);
+      color: #0f0f1a;
+      box-shadow: 0 4px 14px rgba(52, 211, 153, 0.25);
+    }
+    .btn-get:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(52, 211, 153, 0.35); }
+
+    .btn-post {
+      background: var(--accent-post);
+      color: #0f0f1a;
+      box-shadow: 0 4px 14px rgba(129, 140, 248, 0.25);
+    }
+    .btn-post:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(129, 140, 248, 0.35); }
+
+    .btn-put {
+      background: var(--accent-put);
+      color: #0f0f1a;
+      box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25);
+    }
+    .btn-put:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(251, 191, 36, 0.35); }
+
+    .btn-delete {
+      background: var(--accent-delete);
+      color: #0f0f1a;
+      box-shadow: 0 4px 14px rgba(248, 113, 113, 0.25);
+    }
+    .btn-delete:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(248, 113, 113, 0.35); }
+
+    /* ================================================================
+       RESPONSE OUTPUT
+       ================================================================ */
+    .response-box {
+      margin-top: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .response-header span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    .status-ok   { background: var(--accent-get-bg);    color: var(--accent-get);    }
+    .status-err  { background: var(--accent-delete-bg); color: var(--accent-delete); }
+    .status-warn { background: var(--accent-put-bg);    color: var(--accent-put);    }
+
+    .response-body {
+      padding: 14px;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Custom scrollbar */
+    .response-body::-webkit-scrollbar { width: 6px; }
+    .response-body::-webkit-scrollbar-track { background: transparent; }
+    .response-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+
+    /* Fade-in animation for responses */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .response-box.visible {
+      animation: fadeSlideIn 0.3s ease-out;
+    }
+
+    /* ================================================================
+       FOOTER
+       ================================================================ */
+    .app-footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* ================================================================
+       RESPONSIVE
+       ================================================================ */
+    @media (max-width: 600px) {
+      .app-header h1 { font-size: 1.5rem; }
+      .card { padding: 20px; }
+      .form-row { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================================================= -->
+  <!-- HEADER                                                         -->
+  <!-- ============================================================= -->
+  <header class="app-header">
+    <h1>Task Manager API Tester</h1>
+    <p>Offline browser interface to test all REST API endpoints</p>
+  </header>
+
+  <!-- ============================================================= -->
+  <!-- MAIN CONTENT                                                   -->
+  <!-- ============================================================= -->
+  <main class="container">
+
+    <!-- ─── GET ALL TASKS ─────────────────────────────────────────── -->
+    <section class="card" id="section-get-all">
+      <div class="card-title">
+        <span class="method-badge badge-get">GET</span>
+        <h2>/tasks — Get All Tasks</h2>
+      </div>
+      <p class="card-description">Fetches every task currently stored in-memory.</p>
+      <button class="btn btn-get" id="btn-get-all">GET /tasks</button>
+      <div class="response-box" id="res-get-all" style="display:none"></div>
+    </section>
+
+    <!-- ─── GET SINGLE TASK ───────────────────────────────────────── -->
+    <section class="card" id="section-get-one">
+      <div class="card-title">
+        <span class="method-badge badge-get">GET</span>
+        <h2>/tasks/:id — Get One Task</h2>
+      </div>
+      <p class="card-description">Fetches a single task by its ID. Returns 404 if not found, 400 if ID is invalid.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="get-id">Task ID</label>
+          <input type="text" id="get-id" placeholder="e.g. 1" />
+        </div>
+        <button class="btn btn-get" id="btn-get-one">GET /tasks/:id</button>
+      </div>
+      <div class="response-box" id="res-get-one" style="display:none"></div>
+    </section>
+
+    <!-- ─── POST — CREATE TASK ────────────────────────────────────── -->
+    <section class="card" id="section-post">
+      <div class="card-title">
+        <span class="method-badge badge-post">POST</span>
+        <h2>/tasks — Create a Task</h2>
+      </div>
+      <p class="card-description">Creates a new task. Sends JSON body with title and completed status.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="post-title">Task Title</label>
+          <input type="text" id="post-title" placeholder="e.g. Complete Practical 4" />
+        </div>
+        <button class="btn btn-post" id="btn-post">POST /tasks</button>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="post-completed" />
+        <label for="post-completed">Mark as completed</label>
+      </div>
+      <div class="response-box" id="res-post" style="display:none"></div>
+    </section>
+
+    <!-- ─── PUT — UPDATE TASK ─────────────────────────────────────── -->
+    <section class="card" id="section-put">
+      <div class="card-title">
+        <span class="method-badge badge-put">PUT</span>
+        <h2>/tasks/:id — Update a Task</h2>
+      </div>
+      <p class="card-description">Updates an existing task's title and/or completed status. Returns 404 if not found.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="put-id">Task ID</label>
+          <input type="text" id="put-id" placeholder="e.g. 1" />
+        </div>
+        <div class="form-group">
+          <label for="put-title">New Title</label>
+          <input type="text" id="put-title" placeholder="e.g. Updated title" />
+        </div>
+        <button class="btn btn-put" id="btn-put">PUT /tasks/:id</button>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="put-completed" />
+        <label for="put-completed">Mark as completed</label>
+      </div>
+      <div class="response-box" id="res-put" style="display:none"></div>
+    </section>
+
+    <!-- ─── DELETE — REMOVE TASK ──────────────────────────────────── -->
+    <section class="card" id="section-delete">
+      <div class="card-title">
+        <span class="method-badge badge-delete">DELETE</span>
+        <h2>/tasks/:id — Delete a Task</h2>
+      </div>
+      <p class="card-description">Permanently removes a task by its ID. Returns 404 if not found.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="delete-id">Task ID</label>
+          <input type="text" id="delete-id" placeholder="e.g. 2" />
+        </div>
+        <button class="btn btn-delete" id="btn-delete">DELETE /tasks/:id</button>
+      </div>
+      <div class="response-box" id="res-delete" style="display:none"></div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================= -->
+  <!-- FOOTER                                                         -->
+  <!-- ============================================================= -->
+  <footer class="app-footer">
+    Practical 4 &mdash; Task Manager RESTful API &mdash; Node.js &amp; Express
+  </footer>
+
+  <!-- ============================================================= -->
+  <!-- CLIENT-SIDE JAVASCRIPT                                         -->
+  <!-- ============================================================= -->
+  <script>
+    // =================================================================
+    // HELPER — Display the API response inside a response-box element
+    // =================================================================
+    function showResponse(boxId, status, data) {
+      var box = document.getElementById(boxId);
+      box.style.display = "block";
+
+      // Determine status badge class
+      var badgeClass = "status-ok";
+      if (status >= 400 && status < 500) badgeClass = "status-warn";
+      if (status >= 500) badgeClass = "status-err";
+
+      box.innerHTML =
+        '<div class="response-header">' +
+          '<span>Response</span>' +
+          '<span class="status-badge ' + badgeClass + '">Status ' + status + '</span>' +
+        '</div>' +
+        '<pre class="response-body">' + JSON.stringify(data, null, 2) + '</pre>';
+
+      // Trigger animation
+      box.classList.remove("visible");
+      void box.offsetWidth; // force reflow
+      box.classList.add("visible");
+
+      // Scroll into view
+      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // =================================================================
+    // HELPER — Generic fetch wrapper
+    // =================================================================
+    function apiCall(method, url, body, responseBoxId) {
+      var options = {
+        method: method,
+        headers: { "Content-Type": "application/json" }
+      };
+      if (body !== null) {
+        options.body = JSON.stringify(body);
+      }
+
+      fetch(url, options)
+        .then(function (res) {
+          var status = res.status;
+          return res.json().then(function (json) {
+            showResponse(responseBoxId, status, json);
+          });
+        })
+        .catch(function (err) {
+          showResponse(responseBoxId, 0, { error: err.message });
+        });
+    }
+
+    // =================================================================
+    // GET ALL TASKS
+    // =================================================================
+    document.getElementById("btn-get-all").addEventListener("click", function () {
+      apiCall("GET", "/tasks", null, "res-get-all");
+    });
+
+    // =================================================================
+    // GET SINGLE TASK
+    // =================================================================
+    document.getElementById("btn-get-one").addEventListener("click", function () {
+      var id = document.getElementById("get-id").value.trim();
+      if (!id) {
+        showResponse("res-get-one", 0, { error: "Please enter a Task ID" });
+        return;
+      }
+      apiCall("GET", "/tasks/" + id, null, "res-get-one");
+    });
+
+    // =================================================================
+    // POST — CREATE TASK
+    // =================================================================
+    document.getElementById("btn-post").addEventListener("click", function () {
+      var title = document.getElementById("post-title").value.trim();
+      if (!title) {
+        showResponse("res-post", 0, { error: "Please enter a task title" });
+        return;
+      }
+      var completed = document.getElementById("post-completed").checked;
+      apiCall("POST", "/tasks", { title: title, completed: completed }, "res-post");
+    });
+
+    // =================================================================
+    // PUT — UPDATE TASK
+    // =================================================================
+    document.getElementById("btn-put").addEventListener("click", function () {
+      var id = document.getElementById("put-id").value.trim();
+      if (!id) {
+        showResponse("res-put", 0, { error: "Please enter a Task ID" });
+        return;
+      }
+      var title = document.getElementById("put-title").value.trim();
+      var completed = document.getElementById("put-completed").checked;
+      var body = { completed: completed };
+      if (title) body.title = title;
+      apiCall("PUT", "/tasks/" + id, body, "res-put");
+    });
+
+    // =================================================================
+    // DELETE — REMOVE TASK
+    // =================================================================
+    document.getElementById("btn-delete").addEventListener("click", function () {
+      var id = document.getElementById("delete-id").value.trim();
+      if (!id) {
+        showResponse("res-delete", 0, { error: "Please enter a Task ID" });
+        return;
+      }
+      apiCall("DELETE", "/tasks/" + id, null, "res-delete");
+    });
+  </script>
+
+</body>
+</html>

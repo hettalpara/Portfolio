@@ -31,10 +31,28 @@ function NavBar() {
               Home
             </Link>
           </li>
+          {/* About link - scrolls to about section on home page */}
+          <li>
+            <Link to="/#about" className={location.pathname === "/#about" ? "nav-link active" : "nav-link"}>
+              About
+            </Link>
+          </li>
           {/* Projects link - adds "active" class if current path is "/projects" */}
           <li>
             <Link to="/projects" className={location.pathname === "/projects" ? "nav-link active" : "nav-link"}>
               Projects
+            </Link>
+          </li>
+          {/* Skills link - scrolls to skills section on home page */}
+          <li>
+            <Link to="/#skills" className={location.pathname === "/#skills" ? "nav-link active" : "nav-link"}>
+              Skills
+            </Link>
+          </li>
+          {/* Tasks link - navigates to the Tasks page (Practical 4) */}
+          <li>
+            <Link to="/tasks" className={location.pathname === "/tasks" ? "nav-link active" : "nav-link"}>
+              Tasks
             </Link>
           </li>
           {/* Contact link - adds "active" class if current path is "/contact" */}
