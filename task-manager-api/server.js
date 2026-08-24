@@ -122,8 +122,8 @@ const handlePostTask = (req, res) => {
   }
 
   const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-  const taskStatus = status && ['pending', 'in-progress', 'done'].includes(status) 
-    ? status 
+  const taskStatus = status && ['pending', 'in-progress', 'done'].includes(status)
+    ? status
     : (completed ? 'done' : 'pending');
 
   const newTask = {

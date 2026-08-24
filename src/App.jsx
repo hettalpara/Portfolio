@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 
 import NavBar from './components/NavBar'
 import Footer from './components/Footer'
@@ -13,6 +13,7 @@ import Tasks from './pages/Tasks'
 import './App.css'
 
 function App() {
+  const location = useLocation()
   const name = "Het Talpara"
 
   const skillList = [
@@ -25,6 +26,19 @@ function App() {
     "Python",
     "MySQL"
   ]
+
+  // Automatically scroll to target section when URL contains a hash (e.g. /#skills or /#about)
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '')
+      const element = document.getElementById(id)
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+      }
+    }
+  }, [location])
 
   return (
     <div className="app">

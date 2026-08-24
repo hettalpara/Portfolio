@@ -103,25 +103,30 @@ function Tasks() {
   const doneTasks = getColumnTasks('done')
 
   return (
-    <div className="tasks-page-kanban">
-      <div className="kanban-container">
-        
-        {/* Header Bar */}
-        <div className="kanban-header">
-          <div className="header-left">
-            <span className="terminal-path">~/task-manager</span>
-            <h1 className="kanban-title">Task Manager</h1>
+    <section className="tasks-page" id="tasks">
+      <div className="section-container">
+
+        {/* Header Section */}
+        <div className="tasks-header-wrapper">
+          <div>
+            <h2 className="section-title">Task Manager</h2>
+            <p className="section-subtitle">
+              Full-stack task management powered by Node.js & Express REST API.
+            </p>
           </div>
-          <div className="header-right">
-            <span className="task-count-badge">{tasks.length} tasks</span>
+
+          <div className="tasks-meta-badges">
+            <span className="task-count-pill">
+              📋 {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'}
+            </span>
             <div className={`api-status-pill ${apiConnected ? 'connected' : 'disconnected'}`}>
               <span className="status-dot"></span>
-              {apiConnected ? 'API connected' : 'API offline'}
+              {apiConnected ? 'API Connected' : 'API Offline'}
             </div>
           </div>
         </div>
 
-        {/* Server Activity Terminal */}
+        {/* Server Activity Console */}
         <div className="server-activity-card">
           <div className="activity-header">
             <div className="terminal-dots">
@@ -129,7 +134,7 @@ function Tasks() {
               <span className="dot yellow"></span>
               <span className="dot green"></span>
             </div>
-            <span className="activity-title">SERVER ACTIVITY</span>
+            <span className="activity-title">SERVER ACTIVITY CONSOLE</span>
           </div>
           <div className="activity-body">
             <div className="terminal-prompt">$ _</div>
@@ -146,25 +151,25 @@ function Tasks() {
         </div>
 
         {/* Add Task Input Form */}
-        <form className="kanban-input-form" onSubmit={addTask}>
+        <form className="task-input-card" onSubmit={addTask}>
           <div className="input-wrapper">
-            <span className="plus-icon">+</span>
+            <span className="plus-icon">➕</span>
             <input
               type="text"
-              className="kanban-input"
-              placeholder="Add a task and press enter..."
+              className="task-input-field"
+              placeholder="Add a new task and press enter..."
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
             />
           </div>
-          <button type="submit" className="kanban-add-btn">
-            Add task
+          <button type="submit" className="btn btn-primary add-task-btn">
+            Add Task
           </button>
         </form>
 
-        {/* Error Alert if any */}
+        {/* Error Alert Banner */}
         {error && (
-          <div className="kanban-error-banner">
+          <div className="task-error-banner">
             <span>⚠️ {error}</span>
             <button onClick={() => setError(null)}>✕</button>
           </div>
@@ -172,7 +177,7 @@ function Tasks() {
 
         {/* Kanban Board Columns */}
         <div className="kanban-board">
-          
+
           {/* Pending Column */}
           <div className="kanban-column column-pending">
             <div className="column-header">
@@ -278,7 +283,7 @@ function Tasks() {
         </div>
 
       </div>
-    </div>
+    </section>
   )
 }
 

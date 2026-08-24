@@ -24,16 +24,16 @@ function Footer() {
           <div className="footer-contact">
             <h4>Contact</h4>
             {/* Email link - opens the user's email client when clicked */}
-           <p>
-                  📧{" "} <a href="mailto:hettalpara@gmail.com">hettalpara@gmail.com</a>
-           </p>
+            <p>
+              📧{" "} <a href="mailto:hettalpara@gmail.com">hettalpara@gmail.com</a>
+            </p>
 
             {/* GitHub link - opens in a new tab */}
             {/* target="_blank" opens link in new tab */}
             {/* rel="noopener noreferrer" is for security when using target="_blank" */}
             <p>
-                 🔗{" "} <a href="https://github.com/hettalpara" target="_blank" rel="noopener noreferrer">github.com/hettalpara</a>
-</p>
+              🔗{" "} <a href="https://github.com/hettalpara" target="_blank" rel="noopener noreferrer">github.com/hettalpara</a>
+            </p>
           </div>
         </div>
 
