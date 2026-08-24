@@ -28,8 +28,8 @@ function Tasks() {
     try {
       const response = await fetch(API_URL)
       if (!response.ok) throw new Error(`Status: ${response.status}`)
-      const data = await response.json()
-      setTasks(data)
+      const result = await response.json()
+      setTasks(result.data)
       setApiConnected(true)
       addLog('GET', '/api/tasks')
     } catch (err) {
@@ -52,8 +52,8 @@ function Tasks() {
         body: JSON.stringify({ title: newTask.trim(), status: 'pending' })
       })
       if (!response.ok) throw new Error(`Status: ${response.status}`)
-      const createdTask = await response.json()
-      setTasks(prev => [...prev, createdTask])
+      const result = await response.json()
+      setTasks(prev => [...prev, result.data])
       setNewTask('')
       setApiConnected(true)
       addLog('POST', `/api/tasks`)
@@ -71,8 +71,8 @@ function Tasks() {
         body: JSON.stringify({ status: nextStatus, completed: nextStatus === 'done' })
       })
       if (!response.ok) throw new Error(`Status: ${response.status}`)
-      const updatedTask = await response.json()
-      setTasks(prev => prev.map(t => t.id === id ? updatedTask : t))
+      const result = await response.json()
+      setTasks(prev => prev.map(t => t._id === id ? result.data : t))
       setApiConnected(true)
       addLog('PUT', `/api/tasks/${id}`)
     } catch (err) {
@@ -85,7 +85,7 @@ function Tasks() {
     try {
       const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error(`Status: ${response.status}`)
-      setTasks(prev => prev.filter(t => t.id !== id))
+      setTasks(prev => prev.filter(t => t._id !== id))
       setApiConnected(true)
       addLog('DELETE', `/api/tasks/${id}`)
     } catch (err) {
@@ -119,10 +119,6 @@ function Tasks() {
             <span className="task-count-pill">
               📋 {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'}
             </span>
-            <div className={`api-status-pill ${apiConnected ? 'connected' : 'disconnected'}`}>
-              <span className="status-dot"></span>
-              {apiConnected ? 'API Connected' : 'API Offline'}
-            </div>
           </div>
         </div>
 
@@ -192,16 +188,16 @@ function Tasks() {
                 <div className="empty-column-box">No tasks here yet</div>
               ) : (
                 pendingTasks.map(task => (
-                  <div key={task.id} className="kanban-task-card pending-card">
+                  <div key={task._id} className="kanban-task-card pending-card">
                     <div className="card-top">
                       <span className="task-name">{task.title}</span>
-                      <button className="card-close-btn" onClick={() => deleteTask(task.id)}>×</button>
+                      <button className="card-close-btn" onClick={() => deleteTask(task._id)}>×</button>
                     </div>
                     <div className="card-bottom">
-                      <span className="task-id">#{task.id}</span>
+                      <span className="task-id">#{task._id.slice(-6)}</span>
                       <button
                         className="status-step-btn"
-                        onClick={() => updateTaskStatus(task.id, 'in-progress')}
+                        onClick={() => updateTaskStatus(task._id, 'in-progress')}
                       >
                         in-progress →
                       </button>
@@ -226,16 +222,16 @@ function Tasks() {
                 <div className="empty-column-box">No tasks here yet</div>
               ) : (
                 inProgressTasks.map(task => (
-                  <div key={task.id} className="kanban-task-card in-progress-card">
+                  <div key={task._id} className="kanban-task-card in-progress-card">
                     <div className="card-top">
                       <span className="task-name">{task.title}</span>
-                      <button className="card-close-btn" onClick={() => deleteTask(task.id)}>×</button>
+                      <button className="card-close-btn" onClick={() => deleteTask(task._id)}>×</button>
                     </div>
                     <div className="card-bottom">
-                      <span className="task-id">#{task.id}</span>
+                      <span className="task-id">#{task._id.slice(-6)}</span>
                       <button
                         className="status-step-btn"
-                        onClick={() => updateTaskStatus(task.id, 'done')}
+                        onClick={() => updateTaskStatus(task._id, 'done')}
                       >
                         done →
                       </button>
@@ -260,16 +256,16 @@ function Tasks() {
                 <div className="empty-column-box">No tasks here yet</div>
               ) : (
                 doneTasks.map(task => (
-                  <div key={task.id} className="kanban-task-card done-card">
+                  <div key={task._id} className="kanban-task-card done-card">
                     <div className="card-top">
                       <span className="task-name done-title">{task.title}</span>
-                      <button className="card-close-btn" onClick={() => deleteTask(task.id)}>×</button>
+                      <button className="card-close-btn" onClick={() => deleteTask(task._id)}>×</button>
                     </div>
                     <div className="card-bottom">
-                      <span className="task-id">#{task.id}</span>
+                      <span className="task-id">#{task._id.slice(-6)}</span>
                       <button
                         className="status-step-btn revert-btn"
-                        onClick={() => updateTaskStatus(task.id, 'pending')}
+                        onClick={() => updateTaskStatus(task._id, 'pending')}
                       >
                         reopen ←
                       </button>

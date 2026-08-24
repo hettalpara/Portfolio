@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 
-// =========================================================================
-// Task Schema Definition
-// =========================================================================
 const taskSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -16,6 +13,14 @@ const taskSchema = new mongoose.Schema({
   completed: {
     type: Boolean,
     default: false
+  },
+  status: {
+    type: String,
+    enum: {
+      values: ['pending', 'in-progress', 'done'],
+      message: 'Status must be pending, in-progress, or done'
+    },
+    default: 'pending'
   },
   priority: {
     type: String,
@@ -31,15 +36,11 @@ const taskSchema = new mongoose.Schema({
   }
 });
 
-// =========================================================================
-// Pre-Save Hook — Trim extra whitespace from title
-// =========================================================================
-taskSchema.pre('save', function (next) {
+
+taskSchema.pre('save', function () {
   if (this.title) {
-    // Remove leading/trailing whitespace and collapse internal spaces
     this.title = this.title.trim().replace(/\s+/g, ' ');
   }
-  next();
 });
 
 // Export the model
