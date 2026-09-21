@@ -1,10 +1,18 @@
 
 require('dotenv').config();
 
+const dns = require('dns');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const Task = require('./models/Task');
+
+const dnsServers = (process.env.DNS_SERVERS || '1.1.1.1,8.8.8.8')
+  .split(',')
+  .map(server => server.trim())
+  .filter(Boolean);
+
+dns.setServers(dnsServers);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,7 +37,7 @@ function isValidObjectId(id) {
 }
 
 
-app.get('/api/tasks', async (req, res, next) => {
+app.get('/tasks', async (req, res, next) => {
   try {
     const tasks = await Task.find();
     res.status(200).json({
@@ -42,7 +50,7 @@ app.get('/api/tasks', async (req, res, next) => {
   }
 });
 
-app.get('/api/tasks/:id', async (req, res, next) => {
+app.get('/tasks/:id', async (req, res, next) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -69,7 +77,7 @@ app.get('/api/tasks/:id', async (req, res, next) => {
   }
 });
 
-app.post('/api/tasks', async (req, res, next) => {
+app.post('/tasks', async (req, res, next) => {
   try {
     const task = await Task.create(req.body);
     res.status(201).json({
@@ -81,7 +89,7 @@ app.post('/api/tasks', async (req, res, next) => {
   }
 });
 
-app.put('/api/tasks/:id', async (req, res, next) => {
+app.put('/tasks/:id', async (req, res, next) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -111,8 +119,8 @@ app.put('/api/tasks/:id', async (req, res, next) => {
   }
 });
 
-// ----- DELETE /api/tasks/:id — Delete a task -----
-app.delete('/api/tasks/:id', async (req, res, next) => {
+// ----- DELETE /tasks/:id — Delete a task -----
+app.delete('/tasks/:id', async (req, res, next) => {
   try {
     // Validate MongoDB ID format
     if (!isValidObjectId(req.params.id)) {
@@ -191,3 +199,6 @@ mongoose
     console.error('❌ MongoDB connection failed:', err.message);
     process.exit(1);
   });
+
+
+  
