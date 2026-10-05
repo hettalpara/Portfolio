@@ -2,41 +2,73 @@
 
 const BASE_URL = "http://localhost:5000"
 
+function authHeaders(includeContentType = false) {
+  const headers = includeContentType ? { 'Content-Type': 'application/json' } : {}
+  const token = localStorage.getItem('token')
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
+async function request(path, options = {}) {
+  const response = await fetch(`${BASE_URL}${path}`, options)
+  const result = await response.json().catch(() => ({}))
+
+  if (response.status === 401) {
+    localStorage.removeItem('token')
+    if (window.location.pathname !== '/login') window.location.href = '/login'
+  }
+
+  if (!response.ok) {
+    throw new Error(result.message || `Request failed (Status: ${response.status})`)
+  }
+
+  return result
+}
+
+export function registerUser(credentials) {
+  return request('/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials)
+  })
+}
+
+export function loginUser(credentials) {
+  return request('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials)
+  })
+}
+
+export function getCurrentUser() {
+  return request('/auth/me', { headers: authHeaders() })
+}
+
 export async function getTasks() {
-  const response = await fetch(`${BASE_URL}/tasks`)
-  if (!response.ok) throw new Error(`Failed to fetch tasks (Status: ${response.status})`)
-  const result = await response.json()
-  return result 
+  return request('/tasks', { headers: authHeaders() })
 }
 
 export async function createTask(taskData) {
-  const response = await fetch(`${BASE_URL}/tasks`, {
+  return request('/tasks', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(true),
     body: JSON.stringify(taskData)
   })
-  if (!response.ok) throw new Error(`Failed to create task (Status: ${response.status})`)
-  const result = await response.json()
-  return result // { success: true, data: {...} }
 }
 
 export async function updateTask(id, updatedData) {
-  const response = await fetch(`${BASE_URL}/tasks/${id}`, {
+  return request(`/tasks/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(true),
     body: JSON.stringify(updatedData)
   })
-  if (!response.ok) throw new Error(`Failed to update task (Status: ${response.status})`)
-  const result = await response.json()
-  return result // { success: true, data: {...} }
 }
 
 // DELETE a task by ID
 export async function deleteTask(id) {
-  const response = await fetch(`${BASE_URL}/tasks/${id}`, {
-    method: 'DELETE'
+  return request(`/tasks/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders()
   })
-  if (!response.ok) throw new Error(`Failed to delete task (Status: ${response.status})`)
-  const result = await response.json()
-  return result // { success: true, message: "...", data: {...} }
 }

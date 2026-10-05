@@ -36,6 +36,11 @@ function NavBar() {
   const isAboutActive = currentPath === '/' && currentHash === '#about'
   const isSkillsActive = currentPath === '/' && currentHash === '#skills'
 
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
+
   return (
     <nav className="navbar">
       <div className="nav-container">
@@ -97,6 +102,11 @@ function NavBar() {
               Contact
             </Link>
           </li>
+          {localStorage.getItem('token') ? (
+            <li><button type="button" className="nav-link nav-button" onClick={handleLogout}>Logout</button></li>
+          ) : (
+            <li><Link to="/login" className={currentPath === '/login' ? 'nav-link active' : 'nav-link'}>Login</Link></li>
+          )}
         </ul>
       </div>
     </nav>

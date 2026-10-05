@@ -6,6 +6,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const Task = require('./models/Task');
+const authRoutes = require('./routes/authRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
+const { validateTask } = require('./middleware/validationMiddleware');
 
 const dnsServers = (process.env.DNS_SERVERS || '1.1.1.1,8.8.8.8')
   .split(',')
@@ -25,6 +28,8 @@ app.use(express.json());
 
 app.use(express.static('public'));
 
+app.use('/auth', authRoutes);
+
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`${req.method} ${req.originalUrl} - ${timestamp}`);
@@ -37,7 +42,7 @@ function isValidObjectId(id) {
 }
 
 
-app.get('/tasks', async (req, res, next) => {
+app.get('/tasks', authMiddleware, async (req, res, next) => {
   try {
     const tasks = await Task.find();
     res.status(200).json({
@@ -50,7 +55,7 @@ app.get('/tasks', async (req, res, next) => {
   }
 });
 
-app.get('/tasks/:id', async (req, res, next) => {
+app.get('/tasks/:id', authMiddleware, async (req, res, next) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -77,7 +82,7 @@ app.get('/tasks/:id', async (req, res, next) => {
   }
 });
 
-app.post('/tasks', async (req, res, next) => {
+app.post('/tasks', authMiddleware, validateTask, async (req, res, next) => {
   try {
     const task = await Task.create(req.body);
     res.status(201).json({
@@ -89,7 +94,7 @@ app.post('/tasks', async (req, res, next) => {
   }
 });
 
-app.put('/tasks/:id', async (req, res, next) => {
+app.put('/tasks/:id', authMiddleware, validateTask, async (req, res, next) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -120,7 +125,7 @@ app.put('/tasks/:id', async (req, res, next) => {
 });
 
 // ----- DELETE /tasks/:id — Delete a task -----
-app.delete('/tasks/:id', async (req, res, next) => {
+app.delete('/tasks/:id', authMiddleware, async (req, res, next) => {
   try {
     // Validate MongoDB ID format
     if (!isValidObjectId(req.params.id)) {
@@ -188,7 +193,7 @@ app.use((err, req, res, next) => {
 });
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI || process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected successfully');
     app.listen(PORT, () => {
