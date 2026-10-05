@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const Task = require('./models/Task');
+const cache = require('./cache');
 const authRoutes = require('./routes/authRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const { validateTask } = require('./middleware/validationMiddleware');
@@ -36,6 +37,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/api/cache-status', (req, res) => {
+  res.json({
+    cache: 'active'
+  });
+});
+
 
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
@@ -44,7 +51,20 @@ function isValidObjectId(id) {
 
 app.get('/tasks', authMiddleware, async (req, res, next) => {
   try {
+    const cachedTasks = cache.get('all_tasks');
+
+    if (cachedTasks) {
+      console.log('Cache HIT');
+      return res.status(200).json({
+        success: true,
+        count: cachedTasks.length,
+        data: cachedTasks
+      });
+    }
+
+    console.log('Cache MISS');
     const tasks = await Task.find();
+    cache.set('all_tasks', tasks);
     res.status(200).json({
       success: true,
       count: tasks.length,
@@ -85,6 +105,8 @@ app.get('/tasks/:id', authMiddleware, async (req, res, next) => {
 app.post('/tasks', authMiddleware, validateTask, async (req, res, next) => {
   try {
     const task = await Task.create(req.body);
+    cache.del('all_tasks');
+    console.log('Cache invalidated');
     res.status(201).json({
       success: true,
       data: task
@@ -115,6 +137,8 @@ app.put('/tasks/:id', authMiddleware, validateTask, async (req, res, next) => {
       });
     }
 
+    cache.del('all_tasks');
+    console.log('Cache invalidated');
     res.status(200).json({
       success: true,
       data: task
@@ -144,6 +168,8 @@ app.delete('/tasks/:id', authMiddleware, async (req, res, next) => {
       });
     }
 
+    cache.del('all_tasks');
+    console.log('Cache invalidated');
     res.status(200).json({
       success: true,
       message: 'Task deleted successfully',
