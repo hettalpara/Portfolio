@@ -7,9 +7,12 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const Task = require('./models/Task');
 const cache = require('./cache');
+const taskEvents = require('./events');
 const authRoutes = require('./routes/authRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const { validateTask } = require('./middleware/validationMiddleware');
+
+require('./listeners');
 
 const dnsServers = (process.env.DNS_SERVERS || '1.1.1.1,8.8.8.8')
   .split(',')
@@ -107,10 +110,12 @@ app.post('/tasks', authMiddleware, validateTask, async (req, res, next) => {
     const task = await Task.create(req.body);
     cache.del('all_tasks');
     console.log('Cache invalidated');
+    console.log(`[API] Response sent at ${new Date().toISOString()}`);
     res.status(201).json({
       success: true,
       data: task
     });
+    taskEvents.emit('task-created', task);
   } catch (err) {
     next(err);
   }
@@ -175,6 +180,7 @@ app.delete('/tasks/:id', authMiddleware, async (req, res, next) => {
       message: 'Task deleted successfully',
       data: task
     });
+    taskEvents.emit('task-deleted', task);
   } catch (err) {
     next(err);
   }
