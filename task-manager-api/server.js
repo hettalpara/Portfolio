@@ -23,6 +23,7 @@ dns.setServers(dnsServers);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(cors());
 
@@ -31,6 +32,10 @@ app.use(express.json());
 
 
 app.use(express.static('public'));
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 app.use('/auth', authRoutes);
 
@@ -224,12 +229,36 @@ app.use((err, req, res, next) => {
   });
 });
 
-mongoose
-  .connect(process.env.MONGODB_URI || process.env.MONGO_URI)
+async function connectToMongo() {
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI or MONGO_URI must be configured');
+  }
+
+  const maxAttempts = 10;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
+      console.log('✅ MongoDB connected successfully');
+      return;
+    } catch (err) {
+      console.error(`❌ MongoDB connection attempt ${attempt}/${maxAttempts} failed:`, err.message);
+
+      if (attempt === maxAttempts) {
+        throw err;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+}
+
+connectToMongo()
   .then(() => {
-    console.log('✅ MongoDB connected successfully');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    app.listen(PORT, HOST, () => {
+      console.log(`🚀 Server running on http://${HOST}:${PORT}`);
     });
   })
   .catch((err) => {
