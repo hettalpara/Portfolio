@@ -255,16 +255,20 @@ async function connectToMongo() {
   }
 }
 
-connectToMongo()
-  .then(() => {
-    app.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+if (require.main === module) {
+  connectToMongo()
+    .then(() => {
+      app.listen(PORT, HOST, () => {
+        console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('❌ MongoDB connection failed:', err.message);
+      process.exit(1);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection failed:', err.message);
-    process.exit(1);
-  });
+}
+
+module.exports = app;
 
 
   

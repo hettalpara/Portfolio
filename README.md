@@ -1,5 +1,7 @@
 # Task Manager Portfolio
 
+[![CI Pipeline](https://github.com/hettalpara/Portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/hettalpara/Portfolio/actions/workflows/ci.yml)
+
 This project contains a React/Vite frontend, an Express/Mongoose task API, and MongoDB persistence. It includes JWT authentication, task CRUD operations, caching, and task event listeners.
 
 ## Docker prerequisites
